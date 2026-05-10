@@ -1,15 +1,7 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "static/landing.html",
-      "use": "@vercel/static"
-    }
-  ],
+  "outputDirectory": "static",
   "routes": [
-    { "src": "/styles.css", "dest": "/static/styles.css" },
-    { "src": "/logo.svg", "dest": "/static/logo.svg" },
-    { "src": "/logo-mark.svg", "dest": "/static/logo-mark.svg" },
-    { "src": "/(.*)", "dest": "/static/landing.html" }
+    { "src": "/", "dest": "/landing.html" },
+    { "src": "/(.*)", "dest": "/$1" }
   ]
 }
