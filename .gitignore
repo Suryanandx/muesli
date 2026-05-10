@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Env
+.env
+
+# Recordings & model cache
+recordings/*.wav
+.whisper_cache/
+
+# macOS
+.DS_Store
+
+# Editor
+.idea/
+.vscode/

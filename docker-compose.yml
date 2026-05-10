@@ -1,0 +1,62 @@
+services:
+
+  # ── PostgreSQL ───────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       muesli
+      POSTGRES_USER:     muesli
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-muesli_local}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U muesli"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Redis ────────────────────────────────────────────────────────
+  cache:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru --save ""
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── Muesli app ───────────────────────────────────────────────────
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "${PORT:-7474}:7474"
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://muesli:${POSTGRES_PASSWORD:-muesli_local}@db:5432/muesli
+      REDIS_URL:    redis://cache:6379
+    volumes:
+      - ./recordings:/app/recordings
+      - whisper_cache:/root/.cache/huggingface
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    # macOS: pass microphone via PulseAudio socket if available
+    # Linux: uncomment below for system audio
+    # devices:
+    #   - /dev/snd:/dev/snd
+
+volumes:
+  postgres_data:
+  redis_data:
+  whisper_cache:

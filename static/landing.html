@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Muesli — Meeting notes that stay yours</title>
+  <meta name="description" content="Open-source meeting notes. No bots join your calls. No audio leaves your machine. Powered by Whisper + your choice of LLM." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0A0A09;
+      --bg2:      #111110;
+      --bg3:      #1A1A18;
+      --bg4:      #222220;
+      --border:   #272725;
+      --border2:  #323230;
+      --text:     #ECEEE8;
+      --text2:    #9A9A92;
+      --text3:    #525250;
+      --accent:   #E07840;
+      --accent2:  #B85E2A;
+      --gold:     #C8A96E;
+      --green:    #4A9E6F;
+      --r:        10px;
+      --max:      1100px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-feature-settings: 'cv02','cv03','cv04','cv11';
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ──────────────────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,10,9,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 16px; font-weight: 700; letter-spacing: -0.3px;
+    }
+    .nav-logo svg { width: 28px; height: 28px; }
+    .nav-links { display: flex; align-items: center; gap: 6px; }
+    .btn-nav {
+      padding: 7px 14px;
+      border-radius: 7px;
+      border: 1px solid var(--border2);
+      background: var(--bg3);
+      color: var(--text2);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-nav:hover { background: var(--bg4); color: var(--text); }
+    .btn-nav-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .btn-nav-primary:hover { background: #e88848; border-color: #e88848; color: #fff; }
+
+    /* ── Hero ─────────────────────────────────────────────────────── */
+    .hero {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 96px 24px 80px;
+      text-align: center;
+      position: relative;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 50%; transform: translateX(-50%);
+      width: 600px; height: 400px;
+      background: radial-gradient(ellipse at center, rgba(224,120,64,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border2);
+      background: var(--bg3);
+      font-size: 12px;
+      color: var(--text2);
+      margin-bottom: 28px;
+      letter-spacing: 0.2px;
+    }
+    .hero-badge .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+    }
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      font-size: clamp(16px, 2vw, 19px);
+      color: var(--text2);
+      max-width: 560px;
+      margin: 0 auto 36px;
+      line-height: 1.7;
+    }
+    .hero-ctas {
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px; flex-wrap: wrap;
+      margin-bottom: 56px;
+    }
+    .btn-primary {
+      padding: 13px 28px;
+      border-radius: var(--r);
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-primary:hover { background: #e88848; }
+    .btn-secondary {
+      padding: 13px 24px;
+      border-radius: var(--r);
+      border: 1px solid var(--border2);
+      background: transparent;
+      color: var(--text2);
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-secondary:hover { background: var(--bg3); color: var(--text); }
+
+    /* Terminal */
+    .terminal {
+      max-width: 540px;
+      margin: 0 auto;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      overflow: hidden;
+      text-align: left;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    }
+    .terminal-bar {
+      padding: 10px 14px;
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .terminal-bar span {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .t-red   { background: #FF5F57; }
+    .t-yellow{ background: #FEBC2E; }
+    .t-green { background: #28C840; }
+    .terminal-body { padding: 16px 18px; font-family: "Menlo", "Monaco", monospace; font-size: 13px; line-height: 2; }
+    .t-prompt { color: var(--text3); }
+    .t-cmd    { color: var(--text); }
+    .t-out    { color: var(--text2); }
+    .t-accent { color: var(--accent); }
+    .t-green2 { color: var(--green); }
+
+    /* ── Section shell ────────────────────────────────────────────── */
+    section { padding: 80px 24px; }
+    .section-inner { max-width: var(--max); margin: 0 auto; }
+    .section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(26px, 4vw, 40px);
+      font-weight: 700;
+      letter-spacing: -1px;
+      color: var(--text);
+      margin-bottom: 14px;
+      line-height: 1.2;
+    }
+    .section-sub {
+      font-size: 16px;
+      color: var(--text2);
+      max-width: 520px;
+      line-height: 1.7;
+    }
+
+    /* ── How it works ─────────────────────────────────────────────── */
+    #how { background: var(--bg); border-top: 1px solid var(--border); }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2px;
+      margin-top: 52px;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      overflow: hidden;
+    }
+    .step {
+      background: var(--bg2);
+      padding: 32px 28px;
+      position: relative;
+    }
+    .step:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      right: -1px; top: 20%; bottom: 20%;
+      width: 1px;
+      background: var(--border);
+    }
+    .step-num {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+    .step h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .step p { font-size: 14px; color: var(--text2); line-height: 1.65; }
+
+    /* ── Privacy ──────────────────────────────────────────────────── */
+    #privacy { border-top: 1px solid var(--border); }
+    .privacy-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      margin-top: 48px;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      overflow: hidden;
+    }
+    @media (max-width: 640px) { .privacy-grid { grid-template-columns: 1fr; } }
+    .privacy-col { background: var(--bg2); padding: 28px; }
+    .privacy-col h4 {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .privacy-col.good h4 { color: var(--green); }
+    .privacy-col.bad  h4 { color: var(--text3); }
+    .privacy-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .privacy-col li { font-size: 14px; display: flex; align-items: flex-start; gap: 10px; }
+    .privacy-col li::before { flex-shrink: 0; margin-top: 2px; }
+    .good li::before { content: "✓"; color: var(--green); font-weight: 700; }
+    .bad  li::before { content: "✗"; color: var(--text3); }
+    .bad li { color: var(--text3); }
+
+    /* ── Providers ────────────────────────────────────────────────── */
+    #providers { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .provider-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-top: 48px;
+    }
+    .provider-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 28px;
+      transition: border-color 0.15s;
+    }
+    .provider-card:hover { border-color: var(--border2); }
+    .provider-card.featured { border-color: var(--accent2); }
+    .provider-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .provider-name {
+      font-size: 16px; font-weight: 700;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .provider-logo {
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      background: var(--bg4);
+    }
+    .badge-local {
+      font-size: 10px; font-weight: 600;
+      padding: 3px 8px; border-radius: 20px;
+      background: rgba(74,158,111,0.15);
+      color: var(--green);
+      border: 1px solid rgba(74,158,111,0.3);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .badge-featured {
+      font-size: 10px; font-weight: 600;
+      padding: 3px 8px; border-radius: 20px;
+      background: rgba(224,120,64,0.15);
+      color: var(--accent);
+      border: 1px solid rgba(224,120,64,0.3);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .provider-desc { font-size: 14px; color: var(--text2); line-height: 1.6; margin-bottom: 18px; }
+    .provider-code {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 12px 14px;
+      font-family: "Menlo", "Monaco", monospace;
+      font-size: 12px;
+      color: var(--text2);
+      line-height: 1.8;
+    }
+    .provider-code .k { color: var(--text3); }
+    .provider-code .v { color: var(--gold); }
+
+    /* ── Audio setup ──────────────────────────────────────────────── */
+    #audio { border-top: 1px solid var(--border); }
+    .audio-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 48px;
+    }
+    @media (max-width: 700px) { .audio-grid { grid-template-columns: 1fr; } }
+    .audio-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 28px;
+    }
+    .audio-card h3 {
+      font-size: 15px; font-weight: 600;
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .audio-card p { font-size: 14px; color: var(--text2); line-height: 1.65; margin-bottom: 16px; }
+    .code-block {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 12px 14px;
+      font-family: "Menlo", "Monaco", monospace;
+      font-size: 12.5px;
+      color: var(--text2);
+      line-height: 1.8;
+    }
+    .code-block .comment { color: var(--text3); }
+    .code-block .cmd { color: var(--text); }
+
+    /* ── Install ──────────────────────────────────────────────────── */
+    #install { background: var(--bg2); border-top: 1px solid var(--border); text-align: center; }
+    .install-terminal {
+      max-width: 600px;
+      margin: 48px auto 36px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      overflow: hidden;
+      text-align: left;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+    }
+    .install-steps {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+    .install-step {
+      display: flex; align-items: flex-start; gap: 12px;
+      max-width: 200px;
+    }
+    .install-num {
+      width: 24px; height: 24px; min-width: 24px;
+      border-radius: 50%;
+      border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      color: var(--accent);
+      margin-top: 1px;
+    }
+    .install-step p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+    /* ── Footer ───────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 24px;
+    }
+    .footer-inner {
+      max-width: var(--max); margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .footer-logo { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; }
+    .footer-logo svg { width: 20px; height: 20px; }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a { font-size: 13px; color: var(--text3); transition: color 0.15s; }
+    .footer-links a:hover { color: var(--text2); }
+    .footer-copy { font-size: 12px; color: var(--text3); }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="28" height="28" rx="8" fill="#1A1A18"/>
+        <ellipse cx="14" cy="16" rx="9" ry="5" stroke="#E07840" stroke-width="1.5"/>
+        <path d="M5 16 Q14 8 23 16" stroke="#E07840" stroke-width="1.5" fill="none"/>
+        <circle cx="10" cy="11" r="1.5" fill="#C8A96E"/>
+        <circle cx="14" cy="9.5" r="1.5" fill="#C8A96E"/>
+        <circle cx="18" cy="11" r="1.5" fill="#C8A96E"/>
+      </svg>
+      muesli
+    </a>
+    <div class="nav-links">
+      <a href="https://github.com/suryanandx/muesli" class="btn-nav" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-right:2px"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.1.82-.26.82-.58v-2.03c-3.34.72-4.04-1.61-4.04-1.61-.54-1.38-1.33-1.75-1.33-1.75-1.08-.74.08-.72.08-.72 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12 24 5.37 18.63 0 12 0z"/></svg>
+        GitHub
+      </a>
+      <a href="/app" class="btn-nav btn-nav-primary">Open App →</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-badge">
+    <span class="dot"></span>
+    Open-source · MIT License · v0.1.0
+  </div>
+  <h1>Meeting notes that<br><span>stay yours.</span></h1>
+  <p>No bot joins your call. No audio leaves your machine. Whisper transcribes locally, your LLM structures the notes — runs entirely on your hardware.</p>
+  <div class="hero-ctas">
+    <a href="/app" class="btn-primary">Open App →</a>
+    <a href="https://github.com/suryanandx/muesli" class="btn-secondary" target="_blank">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.1.82-.26.82-.58v-2.03c-3.34.72-4.04-1.61-4.04-1.61-.54-1.38-1.33-1.75-1.33-1.75-1.08-.74.08-.72.08-.72 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12 24 5.37 18.63 0 12 0z"/></svg>
+      View on GitHub
+    </a>
+  </div>
+  <div class="terminal">
+    <div class="terminal-bar">
+      <span class="t-red"></span><span class="t-yellow"></span><span class="t-green"></span>
+    </div>
+    <div class="terminal-body">
+      <div><span class="t-prompt">$ </span><span class="t-cmd">git clone https://github.com/suryanandx/muesli</span></div>
+      <div><span class="t-prompt">$ </span><span class="t-cmd">cd muesli && bash setup.sh</span></div>
+      <div class="t-out">  ✓ Created .env</div>
+      <div class="t-out">  ✓ Dependencies installed</div>
+      <div><span class="t-prompt">$ </span><span class="t-cmd">.venv/bin/python -m app.main</span></div>
+      <div><span class="t-accent">  🥣 muesli  →  </span><span class="t-green2">http://localhost:7474</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- How it works -->
+<section id="how">
+  <div class="section-inner">
+    <div class="section-label">How it works</div>
+    <div class="section-title">Three steps, zero friction.</div>
+    <div class="section-sub">Start a meeting. Talk. Get clean notes. Nothing else to configure — it just listens.</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Click Start Meeting</h3>
+        <p>Muesli begins recording your audio input — microphone for in-person, or BlackHole for Zoom/Meet/Teams. No bot joins. No shared link needed.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Meet normally</h3>
+        <p>Join your call as you always do. Jot rough notes in the sidebar if you want — "decided on Redis", "ask about deadline". Muesli captures the rest.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Stop &amp; get notes</h3>
+        <p>Whisper transcribes locally. Your LLM merges the transcript with your rough notes into clean, structured markdown — key points, decisions, action items.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Privacy -->
+<section id="privacy">
+  <div class="section-inner">
+    <div class="section-label">Privacy first</div>
+    <div class="section-title">Your meetings are yours.</div>
+    <div class="section-sub">Most meeting tools send your audio to a server you don't control. Muesli doesn't.</div>
+    <div class="privacy-grid">
+      <div class="privacy-col good">
+        <h4>With Muesli</h4>
+        <ul>
+          <li>Transcription runs on your CPU, offline</li>
+          <li>Notes stored in SQLite on your machine</li>
+          <li>No meeting bot, no shared link required</li>
+          <li>Use Ollama for 100% air-gapped operation</li>
+          <li>No account, no sign-up, no telemetry</li>
+          <li>MIT licensed — audit everything</li>
+        </ul>
+      </div>
+      <div class="privacy-col bad">
+        <h4>Traditional tools (Otter, Fathom, Granola)</h4>
+        <ul>
+          <li>Audio streamed to their cloud in real-time</li>
+          <li>Notes stored on their servers</li>
+          <li>Bot joins your call (visible to all participants)</li>
+          <li>Closed source — can't verify their claims</li>
+          <li>Requires account and subscription</li>
+          <li>Subject to their privacy policy changes</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Providers -->
+<section id="providers">
+  <div class="section-inner">
+    <div class="section-label">LLM Providers</div>
+    <div class="section-title">Your LLM, your choice.</div>
+    <div class="section-sub">Switch between providers in one line. Muesli works with Anthropic, any Ollama model, and 200+ models via OpenRouter.</div>
+    <div class="provider-cards">
+
+      <div class="provider-card">
+        <div class="provider-header">
+          <div class="provider-name">
+            <div class="provider-logo">🤖</div>
+            Anthropic
+          </div>
+          <span class="badge-featured">Default</span>
+        </div>
+        <div class="provider-desc">Claude Sonnet gives the sharpest, most structured notes. Best for teams that want high-quality output and are comfortable with an API key.</div>
+        <div class="provider-code">
+          <span class="k">PROVIDER</span>=<span class="v">anthropic</span><br>
+          <span class="k">ANTHROPIC_API_KEY</span>=<span class="v">sk-ant-...</span><br>
+          <span class="k">ANTHROPIC_MODEL</span>=<span class="v">claude-sonnet-4-6</span>
+        </div>
+      </div>
+
+      <div class="provider-card">
+        <div class="provider-header">
+          <div class="provider-name">
+            <div class="provider-logo">🦙</div>
+            Ollama
+          </div>
+          <span class="badge-local">100% Local</span>
+        </div>
+        <div class="provider-desc">Run any open model locally — Llama 3.2, Mistral, Qwen 2.5, Gemma. Nothing leaves your machine, even the summarization. Perfect for sensitive meetings.</div>
+        <div class="provider-code">
+          <span class="k">PROVIDER</span>=<span class="v">ollama</span><br>
+          <span class="k">OLLAMA_MODEL</span>=<span class="v">llama3.2</span><br>
+          <span class="k">OLLAMA_BASE_URL</span>=<span class="v">http://localhost:11434</span>
+        </div>
+      </div>
+
+      <div class="provider-card">
+        <div class="provider-header">
+          <div class="provider-name">
+            <div class="provider-logo">🔀</div>
+            OpenRouter
+          </div>
+        </div>
+        <div class="provider-desc">One API key, 200+ models. Mix and match — use Claude for important meetings, a cheaper model for quick stand-ups. Great for cost control.</div>
+        <div class="provider-code">
+          <span class="k">PROVIDER</span>=<span class="v">openrouter</span><br>
+          <span class="k">OPENROUTER_API_KEY</span>=<span class="v">sk-or-...</span><br>
+          <span class="k">OPENROUTER_MODEL</span>=<span class="v">anthropic/claude-3.5-sonnet</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Audio Setup -->
+<section id="audio">
+  <div class="section-inner">
+    <div class="section-label">Audio capture</div>
+    <div class="section-title">No bots. Direct capture.</div>
+    <div class="section-sub">Muesli records audio straight from your Mac — no bot joins the call, no link to share, no one else sees it's there.</div>
+    <div class="audio-grid">
+      <div class="audio-card">
+        <h3>🎙️ In-person / microphone</h3>
+        <p>Works out of the box. Muesli records from your default microphone — ideal for in-person meetings, phone calls on speaker, or recordings of yourself.</p>
+        <div class="code-block"><span class="comment"># .env — nothing to change</span><br><span class="cmd">AUDIO_DEVICE=</span></div>
+      </div>
+      <div class="audio-card">
+        <h3>💻 Zoom / Meet / Teams</h3>
+        <p>Install <strong>BlackHole</strong> — a free, open-source virtual audio driver. Route your Mac's output through it, and Muesli captures everything including remote participants.</p>
+        <div class="code-block">
+          <span class="comment"># Install BlackHole (one-time)</span><br>
+          <span class="cmd">brew install blackhole-2ch</span><br><br>
+          <span class="comment"># Set in .env</span><br>
+          <span class="cmd">AUDIO_DEVICE=BlackHole 2ch</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Install -->
+<section id="install">
+  <div class="section-inner">
+    <div class="section-label">Get started</div>
+    <div class="section-title">One command to install.</div>
+    <div class="install-terminal">
+      <div class="terminal-bar">
+        <span class="t-red"></span><span class="t-yellow"></span><span class="t-green"></span>
+      </div>
+      <div class="terminal-body">
+        <div><span class="t-prompt">$ </span><span class="t-cmd">git clone https://github.com/suryanandx/muesli && cd muesli</span></div>
+        <div><span class="t-prompt">$ </span><span class="t-cmd">bash setup.sh</span></div>
+        <div class="t-out">&nbsp;</div>
+        <div class="t-out">  🥣 muesli setup</div>
+        <div class="t-out">  ─────────────────────────</div>
+        <div class="t-out">  ✓ Created .env</div>
+        <div class="t-out">  ✓ Dependencies installed</div>
+        <div class="t-out">  ✓ Whisper model ready</div>
+        <div class="t-out">&nbsp;</div>
+        <div><span class="t-prompt">$ </span><span class="t-cmd">.venv/bin/python -m app.main</span></div>
+        <div><span class="t-accent">  🥣 muesli  →  </span><span class="t-green2">http://localhost:7474</span></div>
+      </div>
+    </div>
+    <div class="install-steps">
+      <div class="install-step"><div class="install-num">1</div><p>Clone the repo and run <code>bash setup.sh</code></p></div>
+      <div class="install-step"><div class="install-num">2</div><p>Add your API key to <code>.env</code></p></div>
+      <div class="install-step"><div class="install-num">3</div><p>Run the app and open localhost:7474</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">
+      <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="28" height="28" rx="8" fill="#1A1A18"/>
+        <ellipse cx="14" cy="16" rx="9" ry="5" stroke="#E07840" stroke-width="1.5"/>
+        <path d="M5 16 Q14 8 23 16" stroke="#E07840" stroke-width="1.5" fill="none"/>
+        <circle cx="10" cy="11" r="1.5" fill="#C8A96E"/>
+        <circle cx="14" cy="9.5" r="1.5" fill="#C8A96E"/>
+        <circle cx="18" cy="11" r="1.5" fill="#C8A96E"/>
+      </svg>
+      muesli
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/suryanandx/muesli" target="_blank">GitHub</a>
+      <a href="https://github.com/suryanandx/muesli/issues" target="_blank">Issues</a>
+      <a href="https://github.com/suryanandx/muesli/blob/main/README.md" target="_blank">Docs</a>
+    </div>
+    <div class="footer-copy">MIT License · Built by <a href="https://suryanand.com" target="_blank" style="color:var(--text2);text-decoration:none;">Suryanand</a></div>
+  </div>
+</footer>
+
+</body>
+</html>

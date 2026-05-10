@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Muesli</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="logo">🥣 muesli</span>
+        <span class="tagline">local meeting notes</span>
+      </div>
+
+      <!-- Record control -->
+      <div class="record-panel" id="recordPanel">
+        <button class="btn-record" id="btnRecord" onclick="toggleRecord()">
+          <span class="record-dot"></span>
+          <span id="btnLabel">Start Meeting</span>
+        </button>
+        <div class="timer" id="timer" style="display:none">00:00</div>
+      </div>
+
+      <!-- Rough notes (shown during recording) -->
+      <div class="notes-input-panel" id="notesInputPanel" style="display:none">
+        <label>Rough notes</label>
+        <textarea id="roughNotes" placeholder="Jot things down while it listens..."></textarea>
+      </div>
+
+      <!-- Processing indicator -->
+      <div class="processing" id="processing" style="display:none">
+        <div class="spinner"></div>
+        <span>Transcribing &amp; summarizing...</span>
+      </div>
+
+      <!-- Meeting list -->
+      <nav class="meeting-list" id="meetingList"></nav>
+    </aside>
+
+    <!-- Main content -->
+    <main class="content" id="content">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">🎙️</div>
+        <h2>No meeting selected</h2>
+        <p>Start a meeting or pick one from the sidebar.</p>
+      </div>
+      <article class="meeting-view" id="meetingView" style="display:none">
+        <header class="meeting-header">
+          <h1 id="meetingTitle"></h1>
+          <div class="meeting-meta">
+            <span id="meetingDate"></span>
+            <span id="meetingDuration"></span>
+          </div>
+          <div class="header-actions">
+            <button class="btn-ghost" id="btnTranscript" onclick="toggleTranscript()">Show transcript</button>
+            <button class="btn-ghost btn-danger" onclick="deleteActiveMeeting()">Delete</button>
+          </div>
+        </header>
+        <div class="notes-body" id="notesBody"></div>
+        <div class="transcript-panel" id="transcriptPanel" style="display:none">
+          <h3>Full transcript</h3>
+          <pre id="transcriptText"></pre>
+        </div>
+      </article>
+    </main>
+
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
