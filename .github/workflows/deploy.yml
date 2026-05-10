@@ -16,6 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
 
@@ -29,18 +34,14 @@ jobs:
           vercel build --prod --token=$VERCEL_TOKEN
           vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
 
-      - name: Create Hostinger subdomain (idempotent)
+      - name: Configure Hostinger DNS (A record → Vercel)
         if: github.ref == 'refs/heads/main'
         env:
           HOSTINGER_API_KEY: ${{ secrets.HOSTINGER_API_KEY }}
         run: |
-          # Point muesli.valthrax.com → Vercel cname (cname.vercel-dns.com)
-          curl -s -X POST "https://api.hostinger.com/v1/dns/valthrax.com/records" \
+          # Add A record: muesli.valthrax.com → 76.76.21.21 (Vercel)
+          curl -sf -X POST "https://api.hostinger.com/v1/dns/zone/valthrax.com/records" \
             -H "Authorization: Bearer $HOSTINGER_API_KEY" \
             -H "Content-Type: application/json" \
-            -d '{
-              "type": "CNAME",
-              "name": "muesli",
-              "content": "cname.vercel-dns.com",
-              "ttl": 3600
-            }' || true
+            -d '{"type":"A","name":"muesli","value":"76.76.21.21","ttl":3600}' || \
+          echo "DNS record may already exist — skipping"
