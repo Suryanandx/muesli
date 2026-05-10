@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "muesli",
   "builds": [
     {
       "src": "static/landing.html",
