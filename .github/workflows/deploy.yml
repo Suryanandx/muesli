@@ -34,14 +34,26 @@ jobs:
           vercel build --prod --token=$VERCEL_TOKEN
           vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
 
-      - name: Configure Hostinger DNS (A record → Vercel)
-        if: github.ref == 'refs/heads/main'
+      - name: Ensure muesli.valthrax.com DNS A record exists
         env:
           HOSTINGER_API_KEY: ${{ secrets.HOSTINGER_API_KEY }}
         run: |
-          # Add A record: muesli.valthrax.com → 76.76.21.21 (Vercel)
-          curl -sf -X POST "https://api.hostinger.com/v1/dns/zone/valthrax.com/records" \
-            -H "Authorization: Bearer $HOSTINGER_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d '{"type":"A","name":"muesli","value":"76.76.21.21","ttl":3600}' || \
-          echo "DNS record may already exist — skipping"
+          # Fetch current zone, append muesli if missing, PUT back
+          ZONE=$(curl -sf "https://developers.hostinger.com/api/dns/v1/zones/valthrax.com" \
+            -H "Authorization: Bearer $HOSTINGER_API_KEY")
+
+          if echo "$ZONE" | grep -q '"name":"muesli"'; then
+            echo "muesli DNS record already exists"
+          else
+            UPDATED=$(echo "$ZONE" | python3 -c "
+          import json, sys
+          zone = json.load(sys.stdin)
+          zone.append({'type':'A','name':'muesli','ttl':300,'records':[{'content':'76.76.21.21','is_disabled':False}]})
+          print(json.dumps({'zone': zone, 'overwrite': True}))
+          ")
+            curl -sf -X PUT "https://developers.hostinger.com/api/dns/v1/zones/valthrax.com" \
+              -H "Authorization: Bearer $HOSTINGER_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d "$UPDATED"
+            echo "muesli DNS record created"
+          fi
